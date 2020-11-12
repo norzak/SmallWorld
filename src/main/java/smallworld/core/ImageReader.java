@@ -13,23 +13,29 @@ class ImageReader {
     this.in = new DataInputStream(in);
     this.objectPool = null;
   }
+  
+  //Prepare for reading Image file from a byte array instead of stream
+  private int readInt(DataInputStream in) {
+      return ((in.readByte() & 0xFF) << 24) | ((in.readByte() & 0xFF) << 16)
+              | ((in.readByte() & 0xFF) << 8) | (in.readByte() & 0xFF);
+  }
 
   public SmallObject readObject() throws IOException {
     if (objectPool == null) {
       readObjects();
     }
     // InputStream should now point to the index of a root
-    return objectPool[in.readInt()];
+    return objectPool[readInt(in)];
   }
 
   private void readObjects() throws IOException {
-    if (in.readInt() != 0x53575354) {
+    if (readInt(in) != 0x53575354) {
       throw new RuntimeException("Bad magic number");
     }
-    if (in.readInt() != 0) {
+    if (readInt(in) != 0) {
       throw new RuntimeException("Bad version number");
     }
-    int objectCount = in.readInt();
+    int objectCount = readInt(in);
     objectPool = new SmallObject[objectCount];
     // Read headers to construct placeholder objects
     for (int i = 0; i < objectCount; i++) {
@@ -51,30 +57,30 @@ class ImageReader {
     // Then fill in the objects
     for (int i = 0; i < objectCount; i++) {
       SmallObject obj = objectPool[i];
-      obj.objClass = objectPool[in.readInt()];
-      int dataLength = in.readInt();
+      obj.objClass = objectPool[readInt(in)];
+      int dataLength = readInt(in);
       if (dataLength == -1) {
         obj.data = null;
       } else {
         obj.data = new SmallObject[dataLength];
         for (int j = 0; j < dataLength; j++) {
-          obj.data[j] = objectPool[in.readInt()];
+          obj.data[j] = objectPool[readInt(in)];
         }
       }
       // Type specific data
       if (obj instanceof SmallInt) {
-        ((SmallInt) obj).value = in.readInt();
+        ((SmallInt) obj).value = readInt(in);
       }
       if (obj instanceof SmallByteArray) {
         SmallByteArray sba = (SmallByteArray) obj;
-        int byteLength = in.readInt();
+        int byteLength = readInt(in);
         sba.values = new byte[byteLength];
         for (int j = 0; j < byteLength; j++) {
           sba.values[j] = in.readByte();
         }
       }
     }
-    numSmallInts = in.readInt();
+    numSmallInts = readInt(in);
     // Stream now points to the first root
   }
 
