@@ -24,12 +24,20 @@ class ImageWriter {
     this.objectIndex = 0;
     this.numSmallInts = 0;
   }
+  
+  //Prepare to write image to byte array instead of stream
+  private void writeInt(OutputStream out, int value) {
+    out.writeByte((byte) ((value >> 24) & 0xFF));
+    out.writeByte((byte) ((value >> 16) & 0xFF));
+    out.writeByte((byte) ((value >> 8) & 0xFF));
+    out.writeByte((byte) (value & 0xFF));
+  }
 
   public void finish() throws IOException {
     // Header, SWST version 0
-    out.writeInt(0x53575354); // 'SWST'
-    out.writeInt(0); // version 0
-    out.writeInt(objectIndex); // object count
+    writeInt(out, 0x53575354); // 'SWST'
+    writeInt(out,0); // version 0
+    writeInt(out, objectIndex); // object count
     // First, write the object types
     // 0 = SmallObject, 1 = SmallInt, 2 = SmallByteArray
     for (Entry<Integer, SmallObject> entry : allObjects.entrySet()) {
@@ -48,32 +56,32 @@ class ImageWriter {
     for (Entry<Integer, SmallObject> entry : allObjects.entrySet()) {
       SmallObject obj = entry.getValue();
       // Reference to class
-      out.writeInt(objectPool.get(obj.objClass));
+      writeInt(out,objectPool.get(obj.objClass));
       // data (-1 if none)
       if (obj.data == null) {
-        out.writeInt(-1);
+        writeInt(out,-1);
       } else {
-        out.writeInt(obj.data.length);
+        writeInt(out,obj.data.length);
         for (SmallObject child : obj.data) {
-          out.writeInt(objectPool.get(child));
+          writeInt(out,objectPool.get(child));
         }
       }
       if (obj instanceof SmallInt) {
-        out.writeInt(((SmallInt) obj).value);
+        writeInt(out,((SmallInt) obj).value);
       }
       if (obj instanceof SmallByteArray) {
         SmallByteArray sba = (SmallByteArray) obj;
-        out.writeInt(sba.values.length);
+        writeInt(out,sba.values.length);
         for (byte b : sba.values) {
           out.writeByte(b);
         }
       }
     }
     // Write the (special case) count of small integers
-    out.writeInt(numSmallInts);
+    writeInt(out,numSmallInts);
     // Finally, write out index of the roots, so they can be streamed back in
     for (Integer i : roots) {
-      out.writeInt(i);
+      writeInt(out,i);
     }
     out.close();
   }
