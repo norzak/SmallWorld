@@ -1,6 +1,5 @@
 package smallworld.core;
 
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -13,24 +12,24 @@ class ImageWriter {
   private int numSmallInts;
   private int objectIndex;
   private final HashMap<SmallObject, Integer> objectPool;
-  private final DataOutputStream out;
+  private final OutputStream out;
   private final ArrayList<Integer> roots;
 
   public ImageWriter(OutputStream out) {
     objectPool = new HashMap<>();
     allObjects = new TreeMap<>();
     roots = new ArrayList<>();
-    this.out = new DataOutputStream(out);
+    this.out = out;
     this.objectIndex = 0;
     this.numSmallInts = 0;
   }
   
   //Prepare to write image to byte array instead of stream
   private void writeInt(OutputStream out, int value) {
-    out.writeByte((byte) ((value >> 24) & 0xFF));
-    out.writeByte((byte) ((value >> 16) & 0xFF));
-    out.writeByte((byte) ((value >> 8) & 0xFF));
-    out.writeByte((byte) (value & 0xFF));
+    out.write((value >> 24) & 0xFF);
+    out.write((value >> 16) & 0xFF);
+    out.write((value >> 8) & 0xFF);
+    out.write(value & 0xFF);
   }
 
   public void finish() throws IOException {
@@ -43,13 +42,13 @@ class ImageWriter {
     for (Entry<Integer, SmallObject> entry : allObjects.entrySet()) {
       SmallObject obj = entry.getValue();
       if (obj instanceof SmallByteArray) {
-        out.writeByte(2);
+        out.write(2);
       } else if (obj instanceof SmallInt) {
-        out.writeByte(1);
+        out.write(1);
       } else if (obj instanceof SmallJavaObject) {
         throw new RuntimeException("JavaObject serialization not supported");
       } else {
-        out.writeByte(0);
+        out.write(0);
       }
     }
     // Then, write entries
@@ -73,7 +72,7 @@ class ImageWriter {
         SmallByteArray sba = (SmallByteArray) obj;
         writeInt(out,sba.values.length);
         for (byte b : sba.values) {
-          out.writeByte(b);
+          out.write(b);
         }
       }
     }
