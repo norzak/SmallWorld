@@ -15,7 +15,7 @@ class ImageReader {
   }
   
   //Prepare for reading Image file from a byte array instead of stream
-  private int readInt(DataInputStream in) {
+  private int readInt(InputStream in) {
       return ((in.readByte() & 0xFF) << 24) | ((in.readByte() & 0xFF) << 16)
               | ((in.readByte() & 0xFF) << 8) | (in.readByte() & 0xFF);
   }
