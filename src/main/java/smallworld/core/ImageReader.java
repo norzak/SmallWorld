@@ -1,23 +1,23 @@
 package smallworld.core;
 
-import java.io.DataInputStream;
+import java.io.InputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 class ImageReader {
-  private final DataInputStream in;
+  private final InputStream in;
   private int numSmallInts;
   private SmallObject[] objectPool;
 
   public ImageReader(InputStream in) {
-    this.in = new DataInputStream(in);
+    this.in = in;
     this.objectPool = null;
   }
   
   //Prepare for reading Image file from a byte array instead of stream
   private int readInt(InputStream in) {
-      return ((in.readByte() & 0xFF) << 24) | ((in.readByte() & 0xFF) << 16)
-              | ((in.readByte() & 0xFF) << 8) | (in.readByte() & 0xFF);
+      return ((in.read() & 0xFF) << 24) | ((in.read() & 0xFF) << 16)
+              | ((in.read() & 0xFF) << 8) | (in.read() & 0xFF);
   }
 
   public SmallObject readObject() throws IOException {
@@ -39,7 +39,7 @@ class ImageReader {
     objectPool = new SmallObject[objectCount];
     // Read headers to construct placeholder objects
     for (int i = 0; i < objectCount; i++) {
-      int objType = in.readByte();
+      int objType = in.read();
       switch (objType) {
         case 0:
           objectPool[i] = new SmallObject();
@@ -76,7 +76,7 @@ class ImageReader {
         int byteLength = readInt(in);
         sba.values = new byte[byteLength];
         for (int j = 0; j < byteLength; j++) {
-          sba.values[j] = in.readByte();
+          sba.values[j] = in.read();
         }
       }
     }
