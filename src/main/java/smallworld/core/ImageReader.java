@@ -4,6 +4,9 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 class ImageReader {
   private final InputStream in;
   private int numSmallInts;
@@ -15,7 +18,7 @@ class ImageReader {
   }
   
   //Prepare for reading Image file from a byte array instead of stream
-  private int readInt(InputStream in) {
+  private int readInt(InputStream in) throws IOException {
       return ((in.read() & 0xFF) << 24) | ((in.read() & 0xFF) << 16)
               | ((in.read() & 0xFF) << 8) | (in.read() & 0xFF);
   }
@@ -76,7 +79,7 @@ class ImageReader {
         int byteLength = readInt(in);
         sba.values = new byte[byteLength];
         for (int j = 0; j < byteLength; j++) {
-          sba.values[j] = in.read();
+          sba.values[j] =(byte) in.read();
         }
       }
     }
