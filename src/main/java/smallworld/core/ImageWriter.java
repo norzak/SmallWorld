@@ -16,16 +16,16 @@ class ImageWriter {
   private final ArrayList<Integer> roots;
 
   public ImageWriter(OutputStream out) {
-    objectPool = new HashMap<>();
-    allObjects = new TreeMap<>();
-    roots = new ArrayList<>();
+    objectPool = new HashMap<SmallObject, Integer>();
+    allObjects = new TreeMap<Integer, SmallObject>();
+    roots = new ArrayList<Integer>();
     this.out = out;
     this.objectIndex = 0;
     this.numSmallInts = 0;
   }
   
   //Prepare to write image to byte array instead of stream
-  private void writeInt(OutputStream out, int value) {
+  private void writeInt(OutputStream out, int value) throws IOException {
     out.write((value >> 24) & 0xFF);
     out.write((value >> 16) & 0xFF);
     out.write((value >> 8) & 0xFF);
